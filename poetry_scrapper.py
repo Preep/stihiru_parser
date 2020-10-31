@@ -55,6 +55,7 @@ while bad_status_in_a_row_count < BAD_THRESHHOLD:
     
     responce = requests.get(url)
     if responce.status_code != 200:
+    	print('Status code not 200. Initiating evasive maneuver')
         current_page = flip_page(current_page, count=1000)
     else:
         bad_status_in_a_row_count = 0

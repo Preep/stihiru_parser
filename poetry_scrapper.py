@@ -62,6 +62,7 @@ while bad_status_in_a_row_count < BAD_THRESHHOLD:
         soup = BeautifulSoup(responce.text, 'html.parser')
         poem = soup.find('div', {'class': 'text'})
         if poem is None:
+            current_page = flip_page(current_page)
             print('Skipping')
             continue
         poem = poem.text.strip()
@@ -71,7 +72,7 @@ while bad_status_in_a_row_count < BAD_THRESHHOLD:
             writer = csv.writer(f)
             writer.writerow([poem])
 
-        page_dict = flip_page(current_page)
+        current_page = flip_page(current_page)
         print(url)
         
 else:

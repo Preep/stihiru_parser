@@ -32,7 +32,7 @@ def page_dict_to_url(page_dict):
 def flip_page(page_dict, count=1):
     if page_dict['number'] <= count:
         this_date = datetime.date(page_dict['year'], page_dict['month'], page_dict['day'])
-        new_date = this_date - datetime.delta(1)
+        new_date = this_date - datetime.timedelta(1)
         
         page_dict['year'] = new_date.year
         page_dict['month'] = new_date.month

@@ -28,7 +28,7 @@ def load_bookmark():
     return page_dict
 
 def page_dict_to_url(page_dict):
-    url = f"https://stihi.ru/{page_dict['year']}/{page_dict['month']}/{page_dict['day']}/{page_dict['number']}"
+    url = f"https://stihi.ru/{page_dict['year']}/{page_dict['month']:02}/{page_dict['day']:02}/{page_dict['number']}"
     return url
 
 def flip_page(page_dict, count=1):

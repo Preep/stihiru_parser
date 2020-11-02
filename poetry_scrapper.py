@@ -2,6 +2,8 @@ import requests
 import datetime
 from bs4 import BeautifulSoup
 import csv
+import multiprocessing
+import time
 
 
 BAD_THRESHHOLD = 1000
@@ -44,44 +46,71 @@ def flip_page(page_dict, count=1):
     
     return page_dict
 
-current_page = load_bookmark()
 
-bad_status_in_a_row_count = 0
-while bad_status_in_a_row_count < BAD_THRESHHOLD:
+def main():
+    current_page = load_bookmark()
 
-    url = page_dict_to_url(current_page)
-    with open('bookmark.txt', 'w') as f:
-        f.write(url)
+    bad_status_in_a_row_count = 0
+    while bad_status_in_a_row_count < BAD_THRESHHOLD:
 
-    try:
-        response = requests.get(url)
-        status_code = response.status_code
-    except:
-        print('Connection error!')
-        bad_status_in_a_row_count += 1
-        status_code = 0
+        url = page_dict_to_url(current_page)
+        with open('bookmark.txt', 'w') as f:
+            f.write(url)
 
-    if status_code != 200:
-        print('Status code not 200. Initiating evasive maneuver')
-        current_page = flip_page(current_page, count=1000)
-    else:
-        bad_status_in_a_row_count = 0
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        poem = soup.find('div', {'class': 'text'})
-        if poem is None:
+        try:
+            response = requests.get(url)
+            status_code = response.status_code
+        except:
+            print('Connection error!')
+            status_code = 0
+
+        if status_code != 200:
+            bad_status_in_a_row_count += 1
+            print('Status code not 200. Initiating evasive maneuver')
+            current_page = flip_page(current_page, count=1000)
+       
+        else:
+            bad_status_in_a_row_count = 0
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            poem = soup.find('div', {'class': 'text'})
+            if poem is None:
+                current_page = flip_page(current_page)
+                print('Skipping')
+                continue
+            poem = poem.text.strip()
+            poem = poem.replace('\n', '|').replace('\xa0', '')
+
+            with open('poems.csv', 'a', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([poem])
+
             current_page = flip_page(current_page)
-            print('Skipping')
-            continue
-        poem = poem.text.strip()
-        poem = poem.replace('\n', '|').replace('\xa0', '')
+            print(url)
+            
+    else:
+        print('Finished or stuck, go check something')
+        return 0
 
-        with open('poems.csv', 'a', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([poem])
 
-        current_page = flip_page(current_page)
-        print(url)
-        
-else:
-    print('Finished or stuck, go check something')
+if __name__ == '__main__':
+
+    with open('bookmark.txt', 'r') as f:
+        bookmark_before = f.read()
+
+    p = multiprocessing.Process(target=main)
+    p.start()
+
+    while True:
+        time.sleep(10)
+        with open('bookmark.txt', 'r') as f:
+            bookmark_after = f.read()
+
+        if bookmark_before==bookmark_after and p.is_alive():
+            p.kill()
+            p.join(5)
+            p = multiprocessing.Process(target=main)
+            p.start()
+            print('RESTARTING PROCESS')
+        elif p.is_alive():
+            bookmark_before=bookmark_after

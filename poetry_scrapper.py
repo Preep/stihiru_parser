@@ -75,8 +75,8 @@ def main():
             soup = BeautifulSoup(response.text, 'html.parser')
             poem = soup.find('div', {'class': 'text'})
             if poem is None:
-                current_page = flip_page(current_page)
-                print('Skipping')
+                current_page = flip_page(current_page, count=100)
+                print(f'Skipping {url}')
                 continue
             poem = poem.text.strip()
             poem = poem.replace('\n', '|').replace('\xa0', '')

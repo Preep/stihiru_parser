@@ -52,15 +52,22 @@ while bad_status_in_a_row_count < BAD_THRESHHOLD:
     url = page_dict_to_url(current_page)
     with open('bookmark.txt', 'w') as f:
         f.write(url)
-    
-    responce = requests.get(url)
-    if responce.status_code != 200:
+
+    try:
+        response = requests.get(url)
+        status_code = response.status_code
+    except:
+        print('Connection error!')
+        bad_status_in_a_row_count += 1
+        status_code = 0
+
+    if status_code != 200:
         print('Status code not 200. Initiating evasive maneuver')
         current_page = flip_page(current_page, count=1000)
     else:
         bad_status_in_a_row_count = 0
         
-        soup = BeautifulSoup(responce.text, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
         poem = soup.find('div', {'class': 'text'})
         if poem is None:
             current_page = flip_page(current_page)
